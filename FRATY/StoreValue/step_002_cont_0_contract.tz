@@ -1,0 +1,51 @@
+parameter (or (int %divide) (or (unit %double) (int %replace)));
+storage   int;
+code
+  {
+    UNPAIR;     # @parameter : @storage
+    IF_LEFT
+      {
+        # == divide ==
+        # assert params.divisor > 5 # @parameter%divide : @storage
+        PUSH int 5; # int : @parameter%divide : @storage
+        DUP 2;      # @parameter%divide : int : @parameter%divide : @storage
+        COMPARE;    # int : @parameter%divide : @storage
+        GT;         # bool : @parameter%divide : @storage
+        IF
+          {}
+          {
+            PUSH string "Assert failure: params.divisor > 5"; # string : @parameter%divide : @storage
+            FAILWITH;   # FAILED
+          }; # @parameter%divide : @storage
+        SWAP;       # @storage : @parameter%divide
+        # self.data.storedValue /= params.divisor # @storage : @parameter%divide
+        EDIV;       # option (pair int nat)
+        IF_NONE
+          {
+            PUSH int 23; # int
+            FAILWITH;   # FAILED
+          }
+          {
+            CAR;        # int
+          }; # int
+      }
+      {
+        IF_LEFT
+          {
+            DROP;       # @storage
+            # == double ==
+            # self.data.storedValue *= 2 # @storage
+            PUSH int 2; # int : @storage
+            SWAP;       # @storage : int
+            MUL;        # int
+          }
+          {
+            SWAP;       # @storage : @parameter%replace
+            DROP;       # @parameter%replace
+            # == replace ==
+            # self.data.storedValue = params.value # @parameter%replace
+          }; # int
+      }; # int
+    NIL operation; # list operation : int
+    PAIR;       # pair (list operation) int
+  };
